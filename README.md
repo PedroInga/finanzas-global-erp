@@ -52,3 +52,4 @@ Reglas de la demo: cliente `404` no existe (404), cliente `999` está inactivo (
 docker build -t finanzas-global/operaciones-cambio-service operaciones-cambio-service
 docker run -p 8083:8083 finanzas-global/operaciones-cambio-service
 ```
+Pipeline de integración continua activo.
