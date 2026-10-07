@@ -1,0 +1,36 @@
+
+digraph G { rankdir=TB; newrank=true;
+  graph [fontname="DejaVu Sans", fontsize=13, dpi=170, pad=0.3, nodesep=0.45, ranksep=0.6];
+  node  [fontname="DejaVu Sans", fontsize=11, shape=box, style="rounded,filled", fillcolor="#EAF1FB", color="#2F5597", penwidth=1.3];
+  edge  [fontname="DejaVu Sans", fontsize=9.5, color="#444444"];
+
+  client [label="Cliente / Front-end / API Gateway", fillcolor="#FFF2CC", color="#BF9000"];
+  subgraph cluster_pres { label="CAPA DE PRESENTACIÓN (API REST) - Spring Web + Spring Security"; style="rounded,filled"; fillcolor="#F3F8FF"; color="#2F5597";
+     ctrl [label="OperacionCambioController\n@RestController\n- valida request (@Valid)\n- @PreAuthorize por rol"];
+     dto  [label="DTOs Request / Response\n+ GlobalExceptionHandler", fillcolor="#FFFFFF"];
+     sec  [label="SecurityFilterChain\nJwtAuthenticationFilter", fillcolor="#FCE4D6", color="#C55A11"];
+  }
+  subgraph cluster_serv { label="CAPA DE SERVICIO / NEGOCIO - @Service, @Transactional"; style="rounded,filled"; fillcolor="#F3FFF3"; color="#548235";
+     svc  [label="OperacionCambioService\n- calcula importes y comisión\n- aplica tipo de cambio vigente\n- reglas de límite por cliente", fillcolor="#E2F0D9", color="#548235"];
+     map  [label="Mappers (MapStruct)", fillcolor="#FFFFFF", color="#548235"];
+  }
+  subgraph cluster_rep { label="CAPA DE ACCESO A DATOS - Spring Data JPA"; style="rounded,filled"; fillcolor="#FFF8F0"; color="#C55A11";
+     repo [label="OperacionCambioRepository\n(JpaRepository)", fillcolor="#FBE5D6", color="#C55A11"];
+     ent  [label="Entidades JPA\nOperacionCambio, Divisa, Comision", fillcolor="#FFFFFF", color="#C55A11"];
+  }
+  db [label="PostgreSQL\n(BD por microservicio)", shape=cylinder, fillcolor="#D9D9D9", color="#595959"];
+  ext [label="OpenFeign / RabbitMQ\n(otros microservicios)", fillcolor="#EDE1F7", color="#7030A0"];
+
+  {rank=same; sec; ctrl; dto}
+  {rank=same; svc; map}
+  {rank=same; repo; ent}
+  client -> sec [label="HTTPS + JWT"];
+  sec -> ctrl [label="1. request autenticado"];
+  ctrl -> dto [dir=both, style=dashed];
+  ctrl -> svc [label="2. DTO"];
+  svc -> map [dir=both, style=dashed];
+  svc -> repo [label="3. entidad"];
+  repo -> ent [dir=both, style=dashed];
+  repo -> db [label="4. SQL"];
+  svc -> ext [label="consulta cliente /\npublica evento", style=dashed];
+}

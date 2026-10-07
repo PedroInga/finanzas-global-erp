@@ -1,0 +1,41 @@
+
+digraph G { rankdir=TB; compound=true;
+  graph [fontname="DejaVu Sans", fontsize=13, dpi=170, pad=0.3, nodesep=0.45, ranksep=0.6];
+  node  [fontname="DejaVu Sans", fontsize=11, shape=box, style="rounded,filled", fillcolor="#EAF1FB", color="#2F5597", penwidth=1.3];
+  edge  [fontname="DejaVu Sans", fontsize=9.5, color="#444444"];
+
+  web [label="Apps consumidoras\nWeb / Móvil / Oficinas", fillcolor="#FFF2CC", color="#BF9000"];
+  gw  [label="API GATEWAY (Spring Cloud Gateway)\nJWT, rate limit, routing, CORS", fillcolor="#F8CBAD", color="#C55A11", penwidth=2];
+  subgraph cluster_infra { label="Infraestructura Spring Cloud"; style="rounded,filled"; fillcolor="#F2F2F2"; color="#7F7F7F";
+     eureka [label="Eureka\n(Service Discovery)", fillcolor="#FFFFFF"];
+     config [label="Config Server\n(+ Vault)", fillcolor="#FFFFFF"];
+     auth   [label="Servicio de Seguridad\n(usuarios, roles, JWT)", fillcolor="#FCE4D6", color="#C55A11"];
+  }
+  subgraph cluster_ms { label="Microservicios de negocio (1 BD por servicio)"; style="rounded,filled"; fillcolor="#F3F8FF"; color="#2F5597";
+     cli  [label="ms-clientes\n(personas y empresas)"];
+     div  [label="ms-divisas\n(monedas, tipos de cambio)"];
+     ope  [label="ms-operaciones-cambio\n(compra / venta)", fillcolor="#FFE699", color="#BF9000"];
+     fac  [label="ms-factoring\n(solicitudes, evaluación,\ncontratos)"];
+     fct  [label="ms-facturas\n(adquiridas, vencimientos)"];
+     tes  [label="ms-tesoreria\n(desembolsos, cobranzas, cajas)"];
+  }
+  subgraph cluster_async { label="Servicios reactivos a eventos"; style="rounded,filled"; fillcolor="#F6EFFB"; color="#7030A0";
+     not  [label="ms-notificaciones", fillcolor="#EDE1F7", color="#7030A0"];
+     aud  [label="ms-auditoria", fillcolor="#EDE1F7", color="#7030A0"];
+     rep  [label="ms-reportes (propuesto)\nmodelo de lectura", fillcolor="#EDE1F7", color="#7030A0"];
+  }
+  mq [label="RabbitMQ\n(exchange de eventos)", shape=cds, fillcolor="#D9E2F3", color="#2F5597", penwidth=2];
+
+  web -> gw [label="HTTPS"];
+  gw -> auth [label="login / validar"];
+  gw -> cli; gw -> div; gw -> ope; gw -> fac; gw -> fct; gw -> tes;
+  ope -> cli [label="Feign", color="#2F5597", fontcolor="#2F5597"];
+  ope -> div [label="Feign", color="#2F5597", fontcolor="#2F5597"];
+  fac -> cli [label="Feign", color="#2F5597", fontcolor="#2F5597"];
+  fac -> fct [label="Feign", color="#2F5597", fontcolor="#2F5597"];
+  tes -> fac [label="Feign", color="#2F5597", fontcolor="#2F5597"];
+  ope -> mq [label="eventos", style=dashed, color="#7030A0", fontcolor="#7030A0"];
+  fac -> mq [style=dashed, color="#7030A0"]; tes -> mq [style=dashed, color="#7030A0"]; fct -> mq [style=dashed, color="#7030A0"];
+  mq -> not [style=dashed, color="#7030A0"]; mq -> aud [style=dashed, color="#7030A0"]; mq -> rep [style=dashed, color="#7030A0"];
+  config -> eureka [style=invis];
+}

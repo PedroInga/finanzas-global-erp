@@ -1,0 +1,28 @@
+
+digraph G { rankdir=TB;
+  graph [fontname="DejaVu Sans", fontsize=13, dpi=170, pad=0.3, nodesep=0.45, ranksep=0.6];
+  node  [fontname="DejaVu Sans", fontsize=11, shape=box, style="rounded,filled", fillcolor="#EAF1FB", color="#2F5597", penwidth=1.3];
+  edge  [fontname="DejaVu Sans", fontsize=9.5, color="#444444"];
+
+  node [width=3.3];
+  d1 [label="1-2. Desarrollador crea rama feature/*\ny programa la funcionalidad", fillcolor="#FFF2CC", color="#BF9000"];
+  d2 [label="3. Pruebas locales (mvn test)\ngit add / commit", fillcolor="#FFF2CC", color="#BF9000"];
+  d3 [label="4. git push origin feature/*\n(GitHub)", fillcolor="#FFF2CC", color="#BF9000"];
+  d4 [label="5. Pull Request hacia main", fillcolor="#FFF2CC", color="#BF9000"];
+  subgraph cluster_ci { label="6. GitHub Actions - workflow ci.yml (runner ubuntu-latest)"; style="rounded,filled"; fillcolor="#F3F8FF"; color="#2F5597";
+     s1 [label="Job build-test\nactions/checkout@v4\nsetup-java 21 (cache Maven)"];
+     s2 [label="7. mvn -B compile\n(descarga dependencias y compila)"];
+     s3 [label="8. mvn -B verify\nJUnit 5 + Spring Boot Test"];
+     s4 [label="9. JaCoCo: informe y regla de cobertura\n(mínimo 70% líneas)"];
+     s5 [label="Sube artefactos\n(surefire + jacoco report)", fillcolor="#FFFFFF"];
+     s6 [label="Job docker-build (solo si OK)\ndocker build de la imagen", fillcolor="#E2F0D9", color="#548235"];
+     s1 -> s2 -> s3 -> s4 -> s5 -> s6;
+  }
+  ok  [label="10. Check VERDE\nRevisión de código + aprobación\n=> Merge a main", fillcolor="#C6E0B4", color="#548235", penwidth=2];
+  ko  [label="Check ROJO\nMerge bloqueado (branch protection)\nNotificación al autor; corrige y\nhace nuevo push => se re-ejecuta", fillcolor="#F8CBAD", color="#C00000", penwidth=2];
+  cd  [label="Futuro: CD\npublicar imagen en registry\ny desplegar a pruebas/producción", fillcolor="#EDE1F7", color="#7030A0", style="rounded,filled,dashed"];
+  d1 -> d2 -> d3 -> d4; d4 -> s1 [label="dispara\non: pull_request"];
+  s4 -> ko [label="compila mal / test falla /\ncobertura < umbral", color="#C00000", fontcolor="#C00000", constraint=false];
+  s6 -> ok [label="todo OK"]; ok -> cd [style=dashed];
+  ko -> d1 [style=dashed, color="#C00000", constraint=false];
+}

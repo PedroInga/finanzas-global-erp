@@ -1,0 +1,20 @@
+server:
+  port: 8083
+
+spring:
+  application:
+    name: operaciones-cambio-service
+  datasource:
+    url: jdbc:h2:mem:operaciones;DB_CLOSE_DELAY=-1
+    username: sa
+    password: ${DB_PASSWORD:}
+  jpa:
+    hibernate:
+      ddl-auto: update
+    open-in-view: false
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info
